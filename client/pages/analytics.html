@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics — Smart Business Card</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="../css/admin.css" rel="stylesheet" />
+  <style>
+    .bar-wrap { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
+    .bar-label { font-size: 0.8rem; color: #495057; min-width: 80px; }
+    .bar-track { flex: 1; background: #f0f2f5; border-radius: 99px; height: 8px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 99px; background: linear-gradient(135deg,#667eea,#764ba2); transition: width 0.6s ease; }
+    .bar-count { font-size: 0.8rem; color: #6c757d; min-width: 30px; text-align: right; }
+  </style>
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/admin.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>Auth.require(); AdminLayout.render('Analytics');</script>
+
+  <script>
+  const content = document.getElementById('pageContent');
+  content.innerHTML = `
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+      <div>
+        <h5 class="fw-bold mb-0" style="color:#1a1a2e;">Scan Analytics</h5>
+        <small class="text-muted">Track every time a business card is viewed</small>
+      </div>
+      <button class="btn btn-outline-secondary btn-sm" onclick="loadAnalytics()">
+        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+      </button>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-xl-3">
+        <div class="stat-card">
+          <div class="stat-icon purple"><i class="bi bi-qr-code-scan"></i></div>
+          <div><div class="stat-value" id="statTotal">—</div><div class="stat-label">Total Scans</div></div>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="bi bi-calendar-day"></i></div>
+          <div><div class="stat-value" id="statToday">—</div><div class="stat-label">Today</div></div>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="stat-card">
+          <div class="stat-icon orange"><i class="bi bi-calendar-week"></i></div>
+          <div><div class="stat-value" id="statWeek">—</div><div class="stat-label">This Week</div></div>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="bi bi-phone"></i></div>
+          <div><div class="stat-value" id="statMobile">—</div><div class="stat-label">Mobile Scans</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts + Table -->
+    <div class="row g-3">
+      <!-- Device & Browser breakdown -->
+      <div class="col-12 col-lg-4">
+        <div class="content-card mb-3">
+          <div class="content-card-header">
+            <h6><i class="bi bi-phone me-2 text-primary"></i>By Device</h6>
+          </div>
+          <div class="content-card-body" id="deviceChart">
+            <div class="text-muted text-center py-3" style="font-size:0.875rem;">Loading...</div>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="content-card-header">
+            <h6><i class="bi bi-browser-chrome me-2 text-success"></i>By Browser</h6>
+          </div>
+          <div class="content-card-body" id="browserChart">
+            <div class="text-muted text-center py-3" style="font-size:0.875rem;">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scan log table -->
+      <div class="col-12 col-lg-8">
+        <div class="content-card">
+          <div class="content-card-header">
+            <h6><i class="bi bi-list-ul me-2 text-secondary"></i>Scan Log</h6>
+            <span class="text-muted" style="font-size:0.8rem;">Total: <strong id="tableTotal">0</strong></span>
+          </div>
+          <div class="content-card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th class="d-none d-md-table-cell">Device</th>
+                    <th class="d-none d-md-table-cell">Browser</th>
+                    <th class="d-none d-lg-table-cell">IP Address</th>
+                    <th>Time</th>
+                  </tr>
+                </thead>
+                <tbody id="scansTable">
+                  <tr><td colspan="5" class="text-center text-muted py-4">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex justify-content-center mt-3" id="paginationWrap"></div>
+      </div>
+    </div>
+  `;
+
+  let currentPage = 1;
+
+  async function loadAnalytics() {
+    const res = await API.get(`/api/scans?page=${currentPage}&limit=20`);
+    if (!res || !res.success) return;
+
+    const { scans, total, pages, page, stats } = res;
+
+    // Stat cards
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statToday').textContent = stats.today;
+    document.getElementById('statWeek').textContent = stats.thisWeek;
+    const mobile = stats.byDevice.find(d => d.device === 'Mobile');
+    document.getElementById('statMobile').textContent = mobile ? mobile.count : 0;
+    document.getElementById('tableTotal').textContent = total;
+
+    // Device chart
+    renderBarChart('deviceChart', stats.byDevice, 'device');
+
+    // Browser chart
+    renderBarChart('browserChart', stats.byBrowser, 'browser');
+
+    // Scans table
+    renderTable(scans);
+    renderPagination(pages, page);
+  }
+
+  function renderBarChart(containerId, rows, key) {
+    const container = document.getElementById(containerId);
+    if (!rows || rows.length === 0) {
+      container.innerHTML = `<div class="text-muted text-center py-3" style="font-size:0.875rem;">No data yet</div>`;
+      return;
+    }
+    const max = Math.max(...rows.map(r => parseInt(r.count)));
+    container.innerHTML = rows.map(r => `
+      <div class="bar-wrap">
+        <div class="bar-label">${r[key] || 'Unknown'}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${max > 0 ? (parseInt(r.count) / max * 100) : 0}%"></div>
+        </div>
+        <div class="bar-count">${r.count}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderTable(scans) {
+    const tbody = document.getElementById('scansTable');
+    if (!scans || scans.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-5">
+        <i class="bi bi-qr-code display-6 d-block mb-2"></i>No scans yet</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = scans.map(s => `
+      <tr>
+        <td>
+          <a href="/card/${s.slug}" target="_blank"
+            class="fw-semibold text-decoration-none" style="font-size:0.875rem;color:#667eea;">
+            ${s.full_name}
+          </a>
+        </td>
+        <td class="d-none d-md-table-cell">
+          <span class="badge bg-light text-dark" style="font-size:0.75rem;">
+            <i class="bi bi-${s.device === 'Mobile' ? 'phone' : s.device === 'Tablet' ? 'tablet' : 'monitor'} me-1"></i>
+            ${s.device || '—'}
+          </span>
+        </td>
+        <td class="d-none d-md-table-cell text-muted" style="font-size:0.8rem;">${s.browser || '—'}</td>
+        <td class="d-none d-lg-table-cell text-muted" style="font-size:0.8rem;">${s.ip_address || '—'}</td>
+        <td class="text-muted" style="font-size:0.8rem;">${Format.datetime(s.scanned_at)}</td>
+      </tr>
+    `).join('');
+  }
+
+  function renderPagination(pages, page) {
+    const wrap = document.getElementById('paginationWrap');
+    if (pages <= 1) { wrap.innerHTML = ''; return; }
+    let html = `<nav><ul class="pagination pagination-sm mb-0">`;
+    html += `<li class="page-item ${page === 1 ? 'disabled' : ''}">
+      <a class="page-link" href="#" onclick="goPage(${page - 1})">‹</a></li>`;
+    for (let i = 1; i <= pages; i++) {
+      html += `<li class="page-item ${i === page ? 'active' : ''}">
+        <a class="page-link" href="#" onclick="goPage(${i})">${i}</a></li>`;
+    }
+    html += `<li class="page-item ${page === pages ? 'disabled' : ''}">
+      <a class="page-link" href="#" onclick="goPage(${page + 1})">›</a></li>`;
+    html += `</ul></nav>`;
+    wrap.innerHTML = html;
+  }
+
+  function goPage(p) { currentPage = p; loadAnalytics(); return false; }
+
+  loadAnalytics();
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+node_modules/
+.env
+server/uploads/photos/*
+server/uploads/qrcodes/*
+!server/uploads/photos/.gitkeep
+!server/uploads/qrcodes/.gitkeep
+*.log

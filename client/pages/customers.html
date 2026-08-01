@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customers — Smart Business Card</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="../css/admin.css" rel="stylesheet" />
+  <style>
+    .photo-preview {
+      width: 80px; height: 80px; border-radius: 10px;
+      object-fit: cover; border: 2px dashed #dee2e6;
+      display: flex; align-items: center; justify-content: center;
+      color: #adb5bd; font-size: 1.5rem; cursor: pointer;
+      overflow: hidden; background: #f8f9fa;
+    }
+    .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .social-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center; }
+    .platform-icons { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .platform-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/admin.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>Auth.require(); AdminLayout.render('Customers');</script>
+
+  <script>
+  const content = document.getElementById('pageContent');
+  content.innerHTML = `
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+      <div>
+        <h5 class="fw-bold mb-0" style="color:#1a1a2e;">Customer Management</h5>
+        <small class="text-muted">Manage all digital business card profiles</small>
+      </div>
+      <button class="btn btn-primary px-4" onclick="openCreateModal()">
+        <i class="bi bi-plus-lg me-2"></i>New Customer
+      </button>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="content-card mb-3">
+      <div class="content-card-body py-3">
+        <div class="row g-2 align-items-center">
+          <div class="col-12 col-md-6">
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" id="searchInput" class="form-control border-start-0"
+                placeholder="Search by name, company, email..." />
+            </div>
+          </div>
+          <div class="col-auto ms-md-auto">
+            <span class="text-muted" style="font-size:0.875rem;">
+              Total: <strong id="totalCount">0</strong> customers
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="content-card">
+      <div class="content-card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th class="d-none d-md-table-cell">Company</th>
+                <th class="d-none d-lg-table-cell">Contact</th>
+                <th class="d-none d-lg-table-cell">Socials</th>
+                <th class="d-none d-md-table-cell">Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="customersTable">
+              <tr><td colspan="6" class="text-center text-muted py-5">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-center mt-3" id="paginationWrap"></div>
+  `;
+
+  // ── State ──
+  let currentPage = 1;
+  let searchTimer;
+  let editingId = null;
+  let socialLinks = [];
+
+  const PLATFORMS = [
+    { value: 'facebook',  label: 'Facebook',  icon: 'bi-facebook',  color: '#1877f2' },
+    { value: 'instagram', label: 'Instagram', icon: 'bi-instagram', color: '#e1306c' },
+    { value: 'linkedin',  label: 'LinkedIn',  icon: 'bi-linkedin',  color: '#0a66c2' },
+    { value: 'github',    label: 'GitHub',    icon: 'bi-github',    color: '#333' },
+    { value: 'tiktok',    label: 'TikTok',    icon: 'bi-tiktok',    color: '#010101' },
+    { value: 'youtube',   label: 'YouTube',   icon: 'bi-youtube',   color: '#ff0000' },
+    { value: 'whatsapp',  label: 'WhatsApp',  icon: 'bi-whatsapp',  color: '#25d366' },
+    { value: 'twitter',   label: 'X (Twitter)',icon: 'bi-twitter-x',color: '#000' },
+    { value: 'website',   label: 'Website',   icon: 'bi-globe',     color: '#667eea' },
+  ];
+
+  // ── Load customers ──
+  async function loadCustomers() {
+    const search = document.getElementById('searchInput').value.trim();
+    const res = await API.get(`/api/customers?search=${encodeURIComponent(search)}&page=${currentPage}&limit=10`);
+    if (!res || !res.success) return;
+
+    document.getElementById('totalCount').textContent = res.total;
+    renderTable(res.customers);
+    renderPagination(res.pages, res.page);
+  }
+
+  function renderTable(customers) {
+    const tbody = document.getElementById('customersTable');
+    if (customers.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5">
+        <i class="bi bi-people display-6 d-block mb-2"></i>No customers found</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = customers.map(c => `
+      <tr>
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            ${c.profile_photo
+              ? `<img src="/uploads/photos/${c.profile_photo}" class="customer-avatar" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">`
+              : `<div class="customer-avatar" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.8rem;flex-shrink:0;">${Format.initials(c.full_name)}</div>`}
+            <div>
+              <div class="fw-semibold" style="font-size:0.875rem;">${c.full_name}</div>
+              <div class="text-muted" style="font-size:0.75rem;">${c.job_title || '—'}</div>
+            </div>
+          </div>
+        </td>
+        <td class="d-none d-md-table-cell text-muted">${c.company || '—'}</td>
+        <td class="d-none d-lg-table-cell">
+          <div style="font-size:0.8rem;">${c.email ? `<div><i class="bi bi-envelope me-1 text-muted"></i>${c.email}</div>` : ''}</div>
+          <div style="font-size:0.8rem;">${c.phone ? `<div><i class="bi bi-telephone me-1 text-muted"></i>${c.phone}</div>` : ''}</div>
+        </td>
+        <td class="d-none d-lg-table-cell">
+          <a href="/card/${c.slug}" target="_blank" class="btn btn-sm btn-outline-secondary" style="font-size:0.7rem;">
+            <i class="bi bi-eye me-1"></i>View Card
+          </a>
+        </td>
+        <td class="d-none d-md-table-cell text-muted" style="font-size:0.8rem;">${Format.date(c.created_at)}</td>
+        <td>
+          <div class="d-flex gap-1">
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditModal(${c.id})" title="Edit">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete(${c.id}, '${c.full_name.replace(/'/g,"\\'")}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderPagination(pages, page) {
+    const wrap = document.getElementById('paginationWrap');
+    if (pages <= 1) { wrap.innerHTML = ''; return; }
+    let html = `<nav><ul class="pagination pagination-sm mb-0">`;
+    html += `<li class="page-item ${page === 1 ? 'disabled' : ''}">
+      <a class="page-link" href="#" onclick="goPage(${page - 1})">‹</a></li>`;
+    for (let i = 1; i <= pages; i++) {
+      html += `<li class="page-item ${i === page ? 'active' : ''}">
+        <a class="page-link" href="#" onclick="goPage(${i})">${i}</a></li>`;
+    }
+    html += `<li class="page-item ${page === pages ? 'disabled' : ''}">
+      <a class="page-link" href="#" onclick="goPage(${page + 1})">›</a></li>`;
+    html += `</ul></nav>`;
+    wrap.innerHTML = html;
+  }
+
+  function goPage(p) { currentPage = p; loadCustomers(); return false; }
+
+  document.getElementById('searchInput').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { currentPage = 1; loadCustomers(); }, 400);
+  });
+
+  // ── Modal ──
+  function buildModal() {
+    if (document.getElementById('customerModal')) return;
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="modal fade" id="customerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+              <h5 class="modal-title fw-bold" id="modalTitle">New Customer</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <form id="customerForm" novalidate>
+                <!-- Photos -->
+                <div class="row g-3 mb-3">
+                  <div class="col-12">
+                    <label class="form-label fw-semibold">Cover Photo</label>
+                    <div class="photo-preview w-100" style="width:100%!important;height:120px;border-radius:12px;" id="coverPreview" onclick="document.getElementById('coverInput').click()">
+                      <i class="bi bi-image"></i>
+                    </div>
+                    <input type="file" id="coverInput" accept="image/*" class="d-none" onchange="previewPhoto(this,'coverPreview')">
+                  </div>
+                  <div class="col-auto">
+                    <label class="form-label fw-semibold">Profile Photo</label>
+                    <div class="photo-preview" id="profilePreview" onclick="document.getElementById('profileInput').click()">
+                      <i class="bi bi-person"></i>
+                    </div>
+                    <input type="file" id="profileInput" accept="image/*" class="d-none" onchange="previewPhoto(this,'profilePreview')">
+                  </div>
+                </div>
+
+                <!-- Basic Info -->
+                <div class="row g-3 mb-3">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                    <input type="text" id="f_full_name" class="form-control" required />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Job Title</label>
+                    <input type="text" id="f_job_title" class="form-control" />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Company</label>
+                    <input type="text" id="f_company" class="form-control" />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Phone</label>
+                    <input type="text" id="f_phone" class="form-control" />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Email</label>
+                    <input type="email" id="f_email" class="form-control" />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Website</label>
+                    <input type="text" id="f_website" class="form-control" placeholder="https://" />
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label fw-semibold">Address</label>
+                    <input type="text" id="f_address" class="form-control" />
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label fw-semibold">Bio</label>
+                    <textarea id="f_bio" class="form-control" rows="3"></textarea>
+                  </div>
+                </div>
+
+                <!-- Social Links -->
+                <div class="mb-2">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <label class="form-label fw-semibold mb-0">Social Links</label>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSocialRow()">
+                      <i class="bi bi-plus me-1"></i>Add
+                    </button>
+                  </div>
+                  <div id="socialLinksContainer"></div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer border-0">
+              <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary px-4" id="saveBtn" onclick="saveCustomer()">
+                <span id="saveBtnText">Save Customer</span>
+                <span id="saveBtnSpinner" class="d-none spinner-border spinner-border-sm ms-2"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete Confirm Modal -->
+      <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-body text-center py-4">
+              <div class="text-danger mb-3" style="font-size:2.5rem;"><i class="bi bi-trash3"></i></div>
+              <h6 class="fw-bold">Delete Customer?</h6>
+              <p class="text-muted small mb-0">This will permanently delete <strong id="deleteCustomerName"></strong> and all their data.</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center gap-2">
+              <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+              <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `);
+  }
+
+  function previewPhoto(input, previewId) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const preview = document.getElementById(previewId);
+      preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function addSocialRow(platform = '', url = '') {
+    socialLinks.push({ platform, url });
+    renderSocialLinks();
+  }
+
+  function renderSocialLinks() {
+    const container = document.getElementById('socialLinksContainer');
+    container.innerHTML = socialLinks.map((link, i) => `
+      <div class="social-row">
+        <select class="form-select form-select-sm" style="max-width:160px;"
+          onchange="socialLinks[${i}].platform = this.value">
+          <option value="">Platform</option>
+          ${PLATFORMS.map(p => `<option value="${p.value}" ${link.platform === p.value ? 'selected' : ''}>${p.label}</option>`).join('')}
+        </select>
+        <input type="url" class="form-control form-control-sm" placeholder="URL"
+          value="${link.url}" onchange="socialLinks[${i}].url = this.value"
+          oninput="socialLinks[${i}].url = this.value" />
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSocialRow(${i})">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  function removeSocialRow(i) {
+    socialLinks.splice(i, 1);
+    renderSocialLinks();
+  }
+
+  function openCreateModal() {
+    buildModal();
+    editingId = null;
+    socialLinks = [];
+    document.getElementById('modalTitle').textContent = 'New Customer';
+    document.getElementById('customerForm').reset();
+    document.getElementById('profilePreview').innerHTML = '<i class="bi bi-person"></i>';
+    document.getElementById('coverPreview').innerHTML = '<i class="bi bi-image"></i>';
+    renderSocialLinks();
+    new bootstrap.Modal(document.getElementById('customerModal')).show();
+  }
+
+  async function openEditModal(id) {
+    buildModal();
+    editingId = id;
+    document.getElementById('modalTitle').textContent = 'Edit Customer';
+
+    const res = await API.get(`/api/customers/${id}`);
+    if (!res || !res.success) return;
+    const c = res.data;
+
+    document.getElementById('f_full_name').value = c.full_name || '';
+    document.getElementById('f_job_title').value = c.job_title || '';
+    document.getElementById('f_company').value = c.company || '';
+    document.getElementById('f_phone').value = c.phone || '';
+    document.getElementById('f_email').value = c.email || '';
+    document.getElementById('f_website').value = c.website || '';
+    document.getElementById('f_address').value = c.address || '';
+    document.getElementById('f_bio').value = c.bio || '';
+
+    if (c.profile_photo) {
+      document.getElementById('profilePreview').innerHTML =
+        `<img src="/uploads/photos/${c.profile_photo}" style="width:100%;height:100%;object-fit:cover;">`;
+    }
+    if (c.cover_photo) {
+      document.getElementById('coverPreview').innerHTML =
+        `<img src="/uploads/photos/${c.cover_photo}" style="width:100%;height:100%;object-fit:cover;">`;
+    }
+
+    socialLinks = c.socialLinks || [];
+    renderSocialLinks();
+    new bootstrap.Modal(document.getElementById('customerModal')).show();
+  }
+
+  async function saveCustomer() {
+    const fullName = document.getElementById('f_full_name').value.trim();
+    if (!fullName) {
+      Toast.show('Full name is required', 'danger');
+      return;
+    }
+
+    const saveBtn = document.getElementById('saveBtn');
+    const saveBtnText = document.getElementById('saveBtnText');
+    const saveBtnSpinner = document.getElementById('saveBtnSpinner');
+    saveBtn.disabled = true;
+    saveBtnText.textContent = 'Saving...';
+    saveBtnSpinner.classList.remove('d-none');
+
+    try {
+      const formData = new FormData();
+      formData.append('full_name', fullName);
+      formData.append('job_title', document.getElementById('f_job_title').value);
+      formData.append('company', document.getElementById('f_company').value);
+      formData.append('phone', document.getElementById('f_phone').value);
+      formData.append('email', document.getElementById('f_email').value);
+      formData.append('website', document.getElementById('f_website').value);
+      formData.append('address', document.getElementById('f_address').value);
+      formData.append('bio', document.getElementById('f_bio').value);
+      formData.append('social_links', JSON.stringify(socialLinks.filter(l => l.platform && l.url)));
+
+      const profileFile = document.getElementById('profileInput').files[0];
+      const coverFile = document.getElementById('coverInput').files[0];
+      if (profileFile) formData.append('profile_photo', profileFile);
+      if (coverFile) formData.append('cover_photo', coverFile);
+
+      const res = editingId
+        ? await API.putForm(`/api/customers/${editingId}`, formData)
+        : await API.postForm('/api/customers', formData);
+
+      if (res && res.success) {
+        bootstrap.Modal.getInstance(document.getElementById('customerModal')).hide();
+        Toast.show(editingId ? 'Customer updated!' : 'Customer created!', 'success');
+        loadCustomers();
+      } else {
+        Toast.show(res?.message || 'Something went wrong', 'danger');
+      }
+    } catch (err) {
+      Toast.show('Server error', 'danger');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtnText.textContent = 'Save Customer';
+      saveBtnSpinner.classList.add('d-none');
+    }
+  }
+
+  function confirmDelete(id, name) {
+    buildModal();
+    document.getElementById('deleteCustomerName').textContent = name;
+    const btn = document.getElementById('confirmDeleteBtn');
+    btn.onclick = () => deleteCustomer(id);
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+  }
+
+  async function deleteCustomer(id) {
+    const res = await API.delete(`/api/customers/${id}`);
+    bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+    if (res && res.success) {
+      Toast.show('Customer deleted', 'success');
+      loadCustomers();
+    } else {
+      Toast.show('Delete failed', 'danger');
+    }
+  }
+
+  // ── Init ──
+  loadCustomers();
+  </script>
+</body>
+</html>

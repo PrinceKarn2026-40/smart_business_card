@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: smart-business-card
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smart-business-card-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: APP_URL
+        value: https://your-app-name.onrender.com
+
+databases:
+  - name: smart-business-card-db
+    databaseName: smart_business_card
+    user: smart_business_card
+    plan: free
