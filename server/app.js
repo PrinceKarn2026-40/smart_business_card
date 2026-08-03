@@ -25,8 +25,11 @@ app.use('/api', require('./routes'));
 app.use('/api/card', require('./routes/cardRoutes'));
 
 // Public card page
-app.get('/card/:slug', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'client', 'pages', 'card.html'));
+app.get('/card/:slug', (req, res, next) => {
+  const cardPath = path.join(__dirname, '..', 'client', 'pages', 'card.html');
+  res.sendFile(cardPath, (err) => {
+    if (err) next(err);
+  });
 });
 
 // Fallback
