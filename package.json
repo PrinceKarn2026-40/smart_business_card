@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "db:init": "node server/config/initDb.js"
+    "db:init": "node server/config/initDb.js",
+    "qr:regen": "node server/config/regenerateQR.js"
   },
   "keywords": [],
   "author": "",
