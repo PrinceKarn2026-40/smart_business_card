@@ -26,7 +26,7 @@ app.use(express.static(path.join(__dirname, '..', 'client')));
 // API routes
 app.use('/api', require('./routes'));
 
-// Public card API
+// Public card API — must be before catch-all
 app.use('/api/card', require('./routes/cardRoutes'));
 
 // Public card page — serve the card HTML shell
@@ -34,8 +34,13 @@ app.get('/card/:slug', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'client', 'pages', 'card.html'));
 });
 
-// Catch-all: serve client for any non-API route
-app.get(/^(?!\/api).*/, (req, res) => {
+// Admin pages
+app.get('/pages/:page', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'client', 'pages', req.params.page));
+});
+
+// Root
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
 });
 
