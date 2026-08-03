@@ -258,6 +258,17 @@
           </div>
         ` : ''}
 
+        <!-- QR Code -->
+        ${c.qr_code_path ? `
+          ${(hasContact || hasSocials) ? '<div class="divider"></div>' : ''}
+          <div class="section-label">Scan to Share</div>
+          <div style="text-align:center;padding:0.5rem 0;">
+            <img src="/uploads/qrcodes/${c.qr_code_path}" alt="QR Code"
+              style="width:160px;height:160px;border-radius:12px;border:3px solid #f0f0f0;">
+            <div style="font-size:0.75rem;color:#adb5bd;margin-top:0.5rem;">Scan to open this card</div>
+          </div>
+        ` : ''}
+
         <!-- Save Contact -->
         <button class="save-btn" onclick="downloadVCard()">
           <i class="bi bi-person-plus-fill"></i> Save Contact
