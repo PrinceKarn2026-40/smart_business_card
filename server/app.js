@@ -24,7 +24,7 @@ app.use(express.static(path.join(__dirname, '..', 'client')));
 app.use('/api', require('./routes'));
 app.use('/api/card', require('./routes/cardRoutes'));
 
-// Public card page
+// Public card page - v2
 app.get('/card/:slug', (req, res, next) => {
   const cardPath = path.join(__dirname, '..', 'client', 'pages', 'card.html');
   res.sendFile(cardPath, (err) => {
