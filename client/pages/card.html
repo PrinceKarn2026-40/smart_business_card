@@ -9,147 +9,168 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+      background: #0d0d1a;
       min-height: 100vh;
       font-family: 'Segoe UI', sans-serif;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 1.5rem 1rem;
+      padding: 0;
     }
 
     .card {
-      background: white;
-      border-radius: 28px;
       width: 100%;
-      max-width: 400px;
-      overflow: hidden;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+      max-width: 480px;
+      min-height: 100vh;
+      background: #0d0d1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 2rem;
     }
 
-    /* ── Header ── */
-    .card-top {
-      background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-      padding: 2.5rem 1.5rem 2rem;
-      text-align: center;
-    }
-    .person-name {
-      font-size: 1.75rem;
-      font-weight: 800;
-      color: white;
-      line-height: 1.2;
-    }
-    .person-title {
-      font-size: 0.95rem;
-      color: rgba(255,255,255,0.85);
-      margin-top: 0.3rem;
-    }
-    .person-company {
-      font-size: 0.85rem;
-      color: rgba(255,255,255,0.7);
-      margin-top: 0.15rem;
+    /* ── Profile Section ── */
+    .profile-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.5rem 1.5rem;
+      position: relative;
     }
 
-    /* ── Body ── */
-    .card-body { padding: 1.75rem 1.5rem; }
-
-    /* ── Call button ── */
-    .call-btn {
+    .profile-photo {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid rgba(255,255,255,0.2);
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #f09433, #bc1888);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.75rem;
-      width: 100%;
-      padding: 1rem;
-      background: #28c76f;
+      font-size: 2rem;
+      font-weight: 700;
       color: white;
-      border: none;
-      border-radius: 14px;
-      font-size: 1.1rem;
-      font-weight: 700;
-      text-decoration: none;
-      margin-bottom: 1.5rem;
-      transition: opacity 0.2s;
+      overflow: hidden;
     }
-    .call-btn:hover { opacity: 0.9; color: white; }
-    .call-btn i { font-size: 1.3rem; }
+    .profile-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
-    /* ── Social Links ── */
-    .section-label {
-      font-size: 0.65rem;
-      font-weight: 700;
+    .person-name {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: white;
+      text-align: center;
+      margin-bottom: 0.3rem;
+    }
+
+    .person-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
       text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #adb5bd;
-      margin-bottom: 0.875rem;
+      letter-spacing: 1.5px;
+      text-align: center;
     }
 
-    .social-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    /* ── Links List ── */
+    .links-list {
+      width: 100%;
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
       gap: 0.75rem;
-      margin-bottom: 1.5rem;
     }
 
-    .social-btn {
+    .link-row {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
-      padding: 0.875rem 1rem;
-      border-radius: 14px;
+      gap: 1rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 1rem 1.25rem;
       text-decoration: none;
-      font-size: 0.875rem;
-      font-weight: 700;
       color: white;
-      transition: transform 0.15s, box-shadow 0.15s;
+      transition: background 0.2s, transform 0.15s;
+      cursor: pointer;
     }
-    .social-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    .link-row:hover {
+      background: rgba(255,255,255,0.1);
+      transform: scale(1.01);
       color: white;
     }
-    .social-btn i { font-size: 1.2rem; }
+
+    .link-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      color: white;
+    }
+
+    .link-label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .link-arrow {
+      margin-left: auto;
+      color: rgba(255,255,255,0.3);
+      font-size: 0.9rem;
+    }
 
     /* ── Save Contact ── */
     .save-btn {
+      margin: 0.5rem 1.25rem 0;
+      width: calc(100% - 2.5rem);
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.6rem;
-      width: 100%;
-      padding: 0.875rem;
+      padding: 1rem;
       background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
       color: white;
       border: none;
-      border-radius: 14px;
+      border-radius: 16px;
       font-size: 0.95rem;
       font-weight: 700;
       cursor: pointer;
+      letter-spacing: 0.5px;
       transition: opacity 0.2s;
     }
     .save-btn:hover { opacity: 0.9; }
 
     /* ── Loading ── */
     .loading {
-      text-align: center;
-      padding: 3rem;
-      color: #6c757d;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: rgba(255,255,255,0.5);
     }
     .spinner {
       width: 40px; height: 40px;
-      border: 3px solid #f0f0f0;
+      border: 3px solid rgba(255,255,255,0.1);
       border-top-color: #dc2743;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
-      margin: 0 auto 1rem;
+      margin-bottom: 1rem;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Not found ── */
-    .not-found {
-      text-align: center;
-      padding: 3rem 2rem;
-    }
   </style>
 </head>
 <body>
@@ -170,7 +191,7 @@
     tiktok:    { color: '#010101', icon: 'bi-tiktok',    label: 'TikTok' },
     youtube:   { color: '#ff0000', icon: 'bi-youtube',   label: 'YouTube' },
     whatsapp:  { color: '#25d366', icon: 'bi-whatsapp',  label: 'WhatsApp' },
-    twitter:   { color: '#000',    icon: 'bi-twitter-x', label: 'X' },
+    twitter:   { color: '#000',    icon: 'bi-twitter-x', label: 'X (Twitter)' },
     website:   { color: '#667eea', icon: 'bi-globe',     label: 'Website' },
   };
 
@@ -187,67 +208,100 @@
     }
   }
 
+  function initials(name) {
+    return (name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  }
+
   function renderCard(c) {
-    document.title = `${c.full_name}`;
+    document.title = c.full_name;
     window._cardData = c;
 
-    const hasSocials = c.socialLinks && c.socialLinks.length > 0;
+    const links = [];
+
+    // Phone as first link
+    if (c.phone) {
+      links.push(`
+        <a href="tel:${c.phone}" class="link-row">
+          <div class="link-icon" style="background:#28c76f;">
+            <i class="bi bi-telephone-fill"></i>
+          </div>
+          <div class="link-label">Call</div>
+          <i class="bi bi-chevron-right link-arrow"></i>
+        </a>
+      `);
+    }
+
+    // WhatsApp if available
+    const wa = c.socialLinks?.find(l => l.platform === 'whatsapp');
+    if (wa) {
+      links.push(`
+        <a href="${wa.url}" target="_blank" class="link-row">
+          <div class="link-icon" style="background:#25d366;">
+            <i class="bi bi-whatsapp"></i>
+          </div>
+          <div class="link-label">WhatsApp</div>
+          <i class="bi bi-chevron-right link-arrow"></i>
+        </a>
+      `);
+    }
+
+    // Other social links (excluding whatsapp already shown)
+    if (c.socialLinks) {
+      c.socialLinks
+        .filter(l => l.platform !== 'whatsapp')
+        .forEach(link => {
+          const p = PLATFORMS[link.platform] || { color: '#667eea', icon: 'bi-link-45deg', label: link.platform };
+          links.push(`
+            <a href="${link.url}" target="_blank" class="link-row">
+              <div class="link-icon" style="background:${p.color};">
+                <i class="bi ${p.icon}"></i>
+              </div>
+              <div class="link-label">${p.label}</div>
+              <i class="bi bi-chevron-right link-arrow"></i>
+            </a>
+          `);
+        });
+    }
+
+    // Email
+    if (c.email) {
+      links.push(`
+        <a href="mailto:${c.email}" class="link-row">
+          <div class="link-icon" style="background:#dc2743;">
+            <i class="bi bi-envelope-fill"></i>
+          </div>
+          <div class="link-label">Email</div>
+          <i class="bi bi-chevron-right link-arrow"></i>
+        </a>
+      `);
+    }
 
     document.getElementById('card').innerHTML = `
-      <!-- Name & Title -->
-      <div class="card-top">
+      <div class="profile-section">
+        <div class="profile-photo">
+          ${c.profile_photo
+            ? `<img src="/uploads/photos/${c.profile_photo}" alt="${c.full_name}">`
+            : initials(c.full_name)}
+        </div>
         <div class="person-name">${c.full_name}</div>
         ${c.job_title ? `<div class="person-title">${c.job_title}</div>` : ''}
-        ${c.company   ? `<div class="person-company">${c.company}</div>` : ''}
       </div>
 
-      <div class="card-body">
-
-        <!-- Tap to Call -->
-        ${c.phone ? `
-          <a href="tel:${c.phone}" class="call-btn">
-            <i class="bi bi-telephone-fill"></i> ${c.phone}
-          </a>
-        ` : ''}
-
-        <!-- Social Links -->
-        ${hasSocials ? `
-          <div class="section-label">Connect on Social Media</div>
-          <div class="social-grid">
-            ${c.socialLinks.map(link => {
-              const p = PLATFORMS[link.platform] || { color: '#667eea', icon: 'bi-link-45deg', label: link.platform };
-              return `
-                <a href="${link.url}" target="_blank" class="social-btn" style="background:${p.color};">
-                  <i class="bi ${p.icon}"></i> ${p.label}
-                </a>`;
-            }).join('')}
-          </div>
-        ` : ''}
-
-        <!-- Save Contact -->
-        <button class="save-btn" onclick="downloadVCard()">
-          <i class="bi bi-person-plus-fill"></i> Save Contact
-        </button>
-
-        <!-- QR Code -->
-        ${c.qr_code_path ? `
-          <div style="text-align:center;margin-top:1.5rem;">
-            <div class="section-label" style="margin-bottom:0.75rem;">Scan to Share</div>
-            <img src="/uploads/qrcodes/${c.qr_code_path}" alt="QR Code"
-              style="width:160px;height:160px;border-radius:12px;border:3px solid #f0f0f0;">
-          </div>
-        ` : ''}
-
+      <div class="links-list">
+        ${links.join('')}
       </div>
+
+      <button class="save-btn" onclick="downloadVCard()">
+        <i class="bi bi-person-plus-fill"></i> Save Contact
+      </button>
     `;
   }
 
   function showNotFound() {
     document.getElementById('card').innerHTML = `
-      <div class="not-found">
+      <div class="loading">
         <div style="font-size:3rem;margin-bottom:1rem;">🪪</div>
-        <h4 style="color:#1a1a2e;margin-bottom:0.5rem;">Card Not Found</h4>
-        <p style="color:#6c757d;">This business card doesn't exist.</p>
+        <div style="color:white;font-size:1.1rem;font-weight:700;">Card Not Found</div>
       </div>`;
   }
 
@@ -264,7 +318,6 @@
       c.website   ? `URL:${c.website}` : '',
       'END:VCARD',
     ].filter(Boolean).join('\n');
-
     const blob = new Blob([lines], { type: 'text/vcard' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
