@@ -229,6 +229,15 @@
           <i class="bi bi-person-plus-fill"></i> Save Contact
         </button>
 
+        <!-- QR Code -->
+        ${c.qr_code_path ? `
+          <div style="text-align:center;margin-top:1.5rem;">
+            <div class="section-label" style="margin-bottom:0.75rem;">Scan to Share</div>
+            <img src="/uploads/qrcodes/${c.qr_code_path}" alt="QR Code"
+              style="width:160px;height:160px;border-radius:12px;border:3px solid #f0f0f0;">
+          </div>
+        ` : ''}
+
       </div>
     `;
   }
