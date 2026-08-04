@@ -23,6 +23,7 @@
 </head>
 <body>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script src="../js/admin.js"></script>
   <script src="../js/layout.js"></script>
   <script>Auth.require(); AdminLayout.render('Customers');</script>
@@ -153,6 +154,9 @@
             <button class="btn btn-sm btn-outline-primary" onclick="openEditModal(${c.id})" title="Edit">
               <i class="bi bi-pencil"></i>
             </button>
+            <button class="btn btn-sm btn-outline-success" onclick="openQrModal('${c.slug}', '${c.full_name.replace(/'/g,"\\'")}')" title="QR Code">
+              <i class="bi bi-qr-code"></i>
+            </button>
             <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete(${c.id}, '${c.full_name.replace(/'/g,"\\'")}')">
               <i class="bi bi-trash"></i>
             </button>
@@ -270,6 +274,26 @@
                 <span id="saveBtnText">Save Customer</span>
                 <span id="saveBtnSpinner" class="d-none spinner-border spinner-border-sm ms-2"></span>
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QR Code Modal -->
+      <div class="modal fade" id="qrModal" tabindex="-1">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+              <h6 class="modal-title fw-bold" id="qrModalTitle">QR Code</h6>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-3">
+              <div id="qrCanvas" class="d-inline-block p-2 bg-white rounded-3 mb-3"></div>
+              <div class="text-muted" style="font-size:0.75rem;word-break:break-all;" id="qrUrl"></div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center gap-2">
+              <button class="btn btn-light" data-bs-dismiss="modal">Close</button>
+              <button class="btn btn-primary" onclick="downloadQr()"><i class="bi bi-download me-1"></i>Download</button>
             </div>
           </div>
         </div>
@@ -446,6 +470,26 @@
     } else {
       Toast.show('Delete failed', 'danger');
     }
+  }
+
+  function openQrModal(slug, name) {
+    buildModal();
+    const url = `${window.location.origin}/card/${slug}`;
+    document.getElementById('qrModalTitle').textContent = name;
+    document.getElementById('qrUrl').textContent = url;
+    const canvas = document.getElementById('qrCanvas');
+    canvas.innerHTML = '';
+    new QRCode(canvas, { text: url, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
+    new bootstrap.Modal(document.getElementById('qrModal')).show();
+  }
+
+  function downloadQr() {
+    const img = document.querySelector('#qrCanvas img');
+    if (!img) return;
+    const a = document.createElement('a');
+    a.href = img.src;
+    a.download = `${document.getElementById('qrModalTitle').textContent.replace(/\s+/g,'_')}_QR.png`;
+    a.click();
   }
 
   // ── Init ──
