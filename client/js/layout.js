@@ -20,6 +20,9 @@ const AdminLayout = {
           <a href="analytics.html" class="sidebar-link">
             <i class="bi bi-bar-chart-line"></i> Analytics
           </a>
+          <a href="settings.html" class="sidebar-link">
+            <i class="bi bi-gear"></i> Settings
+          </a>
         </nav>
         <div class="sidebar-footer">
           <button onclick="Auth.logout()" class="sidebar-link w-100 border-0 text-start"
