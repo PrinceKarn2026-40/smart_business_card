@@ -129,7 +129,7 @@
         <td>
           <div class="d-flex align-items-center gap-2">
             ${c.profile_photo
-              ? `<img src="${c.profile_photo}" class="customer-avatar" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">``
+              ? `<img src="${c.profile_photo}" class="customer-avatar" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">`
               : `<div class="customer-avatar" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.8rem;flex-shrink:0;">${Format.initials(c.full_name)}</div>`}
             <div>
               <div class="fw-semibold" style="font-size:0.875rem;">${c.full_name}</div>
