@@ -153,6 +153,33 @@
     }
     .save-btn:hover { opacity: 0.9; }
 
+    /* ── QR Code ── */
+    .qr-section {
+      margin: 1rem 1.25rem 0;
+      width: calc(100% - 2.5rem);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .qr-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .qr-box {
+      background: white;
+      border-radius: 12px;
+      padding: 10px;
+      display: inline-flex;
+    }
+
     /* ── Loading ── */
     .loading {
       display: flex;
@@ -182,6 +209,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
   const PLATFORMS = {
     facebook:  { color: '#1877f2', icon: 'bi-facebook',  label: 'Facebook' },
@@ -294,7 +322,21 @@
       <button class="save-btn" onclick="downloadVCard()">
         <i class="bi bi-person-plus-fill"></i> Save Contact
       </button>
+
+      <div class="qr-section">
+        <div class="qr-label">Scan to share this card</div>
+        <div class="qr-box" id="qrCode"></div>
+      </div>
     `;
+
+    new QRCode(document.getElementById('qrCode'), {
+      text: window.location.href,
+      width: 160,
+      height: 160,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M,
+    });
   }
 
   function showNotFound() {
