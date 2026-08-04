@@ -449,7 +449,11 @@
   }
 
   // ── Init ──
-  loadCustomers();
+  loadCustomers().catch(err => {
+    console.error('Load customers error:', err);
+    document.getElementById('customersTable').innerHTML =
+      `<tr><td colspan="6" class="text-center text-danger py-4">Failed to load customers. Check console.</td></tr>`;
+  });
   </script>
 </body>
 </html>
