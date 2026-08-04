@@ -1,9 +1,32 @@
-const fs = require('fs');
-const path = require('path');
+const cloudinary = require('../config/cloudinary');
 const customerModel = require('../models/customerModel');
 const socialLinkModel = require('../models/socialLinkModel');
 const { generateSlug } = require('../utils/slugify');
 const { generateQRCode, deleteQRCode } = require('../utils/qrGenerator');
+
+const uploadToCloudinary = (buffer, folder, publicId) => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload_stream(
+      { folder: `smart-business-card/${folder}`, public_id: publicId, overwrite: true, resource_type: 'image' },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result.secure_url);
+      }
+    ).end(buffer);
+  });
+};
+
+const deleteFromCloudinary = async (url) => {
+  if (!url || !url.startsWith('http')) return;
+  try {
+    const parts = url.split('/');
+    const filename = parts[parts.length - 1].split('.')[0];
+    const folder = parts[parts.length - 2];
+    await cloudinary.uploader.destroy(`smart-business-card/${folder}/${filename}`);
+  } catch (err) {
+    console.error('Cloudinary delete error:', err.message);
+  }
+};
 
 const getAll = async (query) => {
   const search = query.search || '';
@@ -28,8 +51,19 @@ const getOne = async (id) => {
 
 const create = async (data, files) => {
   const slug = await generateSlug(data.full_name);
-  const profile_photo = files?.profile_photo?.[0]?.filename || null;
-  const cover_photo = files?.cover_photo?.[0]?.filename || null;
+  const crypto = require('crypto');
+  const uid = crypto.randomBytes(8).toString('hex');
+
+  let profile_photo = null;
+  let cover_photo = null;
+
+  if (files?.profile_photo?.[0]) {
+    profile_photo = await uploadToCloudinary(files.profile_photo[0].buffer, 'photos', `profile-${uid}`);
+  }
+  if (files?.cover_photo?.[0]) {
+    cover_photo = await uploadToCloudinary(files.cover_photo[0].buffer, 'photos', `cover-${uid}`);
+  }
+
   const qr_code_path = await generateQRCode(slug);
 
   const customer = await customerModel.create({
@@ -49,12 +83,20 @@ const update = async (id, data, files) => {
   const existing = await customerModel.findById(id);
   if (!existing) throw { status: 404, message: 'Customer not found' };
 
-  const profile_photo = files?.profile_photo?.[0]?.filename || null;
-  const cover_photo = files?.cover_photo?.[0]?.filename || null;
+  const crypto = require('crypto');
+  const uid = crypto.randomBytes(8).toString('hex');
 
-  // Delete old photos if replaced
-  if (profile_photo && existing.profile_photo) deletePhoto(existing.profile_photo);
-  if (cover_photo && existing.cover_photo) deletePhoto(existing.cover_photo);
+  let profile_photo = null;
+  let cover_photo = null;
+
+  if (files?.profile_photo?.[0]) {
+    if (existing.profile_photo) await deleteFromCloudinary(existing.profile_photo);
+    profile_photo = await uploadToCloudinary(files.profile_photo[0].buffer, 'photos', `profile-${uid}`);
+  }
+  if (files?.cover_photo?.[0]) {
+    if (existing.cover_photo) await deleteFromCloudinary(existing.cover_photo);
+    cover_photo = await uploadToCloudinary(files.cover_photo[0].buffer, 'photos', `cover-${uid}`);
+  }
 
   const customer = await customerModel.update(id, {
     full_name: data.full_name, job_title: data.job_title,
@@ -73,9 +115,9 @@ const remove = async (id) => {
   const customer = await customerModel.findById(id);
   if (!customer) throw { status: 404, message: 'Customer not found' };
 
-  if (customer.profile_photo) deletePhoto(customer.profile_photo);
-  if (customer.cover_photo) deletePhoto(customer.cover_photo);
-  if (customer.qr_code_path) deleteQRCode(customer.qr_code_path);
+  if (customer.profile_photo) await deleteFromCloudinary(customer.profile_photo);
+  if (customer.cover_photo) await deleteFromCloudinary(customer.cover_photo);
+  if (customer.qr_code_path) await deleteQRCode(customer.qr_code_path);
 
   await customerModel.remove(id);
 };
@@ -87,11 +129,6 @@ const parseLinks = (raw) => {
   } catch {
     return [];
   }
-};
-
-const deletePhoto = (filename) => {
-  const filepath = path.join(__dirname, '..', 'uploads', 'photos', filename);
-  if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
 };
 
 module.exports = { getAll, getOne, create, update, remove };

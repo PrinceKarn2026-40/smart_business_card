@@ -280,7 +280,7 @@
       <div class="profile-section">
         <div class="profile-photo">
           ${c.profile_photo
-            ? `<img src="/uploads/photos/${c.profile_photo}" alt="${c.full_name}">`
+            ? `<img src="${c.profile_photo}" alt="${c.full_name}">`
             : initials(c.full_name)}
         </div>
         <div class="person-name">${c.full_name}</div>

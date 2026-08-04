@@ -129,7 +129,7 @@
         <td>
           <div class="d-flex align-items-center gap-2">
             ${c.profile_photo
-              ? `<img src="/uploads/photos/${c.profile_photo}" class="customer-avatar" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">`
+              ? `<img src="${c.profile_photo}" class="customer-avatar" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">``
               : `<div class="customer-avatar" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.8rem;flex-shrink:0;">${Format.initials(c.full_name)}</div>`}
             <div>
               <div class="fw-semibold" style="font-size:0.875rem;">${c.full_name}</div>
@@ -366,11 +366,11 @@
 
     if (c.profile_photo) {
       document.getElementById('profilePreview').innerHTML =
-        `<img src="/uploads/photos/${c.profile_photo}" style="width:100%;height:100%;object-fit:cover;">`;
+        `<img src="${c.profile_photo}" style="width:100%;height:100%;object-fit:cover;">`;
     }
     if (c.cover_photo) {
       document.getElementById('coverPreview').innerHTML =
-        `<img src="/uploads/photos/${c.cover_photo}" style="width:100%;height:100%;object-fit:cover;">`;
+        `<img src="${c.cover_photo}" style="width:100%;height:100%;object-fit:cover;">`;
     }
 
     socialLinks = c.socialLinks || [];
