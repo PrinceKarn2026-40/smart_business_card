@@ -86,8 +86,8 @@ const update = async (id, data, files) => {
   const crypto = require('crypto');
   const uid = crypto.randomBytes(8).toString('hex');
 
-  let profile_photo = null;
-  let cover_photo = null;
+  let profile_photo = existing.profile_photo;
+  let cover_photo = existing.cover_photo;
 
   if (files?.profile_photo?.[0]) {
     if (existing.profile_photo) await deleteFromCloudinary(existing.profile_photo);
