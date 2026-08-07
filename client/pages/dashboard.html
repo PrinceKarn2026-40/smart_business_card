@@ -87,29 +87,6 @@
             </div>
           </div>
         </div>
-
-        <div class="col-12 col-lg-6">
-          <div class="content-card">
-            <div class="content-card-header">
-              <h6><i class="bi bi-qr-code-scan me-2 text-success"></i>Recent Scans</h6>
-              <a href="analytics.html" class="btn btn-sm btn-outline-success" style="font-size:0.75rem;">View All</a>
-            </div>
-            <div class="content-card-body p-0">
-              <table class="table table-hover mb-0">
-                <thead>
-                  <tr>
-                    <th>Customer</th>
-                    <th>Device</th>
-                    <th>Time</th>
-                  </tr>
-                </thead>
-                <tbody id="recentScansTable">
-                  <tr><td colspan="3" class="text-center text-muted py-4">Loading...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
       </div>
     `;
 
@@ -117,7 +94,7 @@
       const data = await API.get('/api/dashboard/stats');
       if (!data || !data.success) return;
 
-      const { totalCustomers, totalScans, recentCustomers, recentScans } = data.data;
+      const { totalCustomers, totalScans, recentCustomers } = data.data;
 
       document.getElementById('statCustomers').textContent = totalCustomers;
       document.getElementById('statScans').textContent = totalScans;
@@ -155,20 +132,6 @@
             </td>
             <td class="text-muted">${c.company || '—'}</td>
             <td class="text-muted">${Format.date(c.created_at)}</td>
-          </tr>
-        `).join('');
-      }
-
-      // Recent scans table
-      const scanTbody = document.getElementById('recentScansTable');
-      if (recentScans.length === 0) {
-        scanTbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4">No scans yet</td></tr>`;
-      } else {
-        scanTbody.innerHTML = recentScans.map(s => `
-          <tr>
-            <td class="fw-semibold">${s.full_name}</td>
-            <td class="text-muted">${s.device || '—'}</td>
-            <td class="text-muted">${Format.datetime(s.scanned_at)}</td>
           </tr>
         `).join('');
       }
