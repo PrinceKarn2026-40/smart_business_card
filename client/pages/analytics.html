@@ -62,10 +62,10 @@
       </div>
     </div>
 
-    <!-- Charts + Table -->
+    <!-- Charts -->
     <div class="row g-3">
       <!-- Device & Browser breakdown -->
-      <div class="col-12 col-lg-4">
+      <div class="col-12 col-md-6">
         <div class="content-card mb-3">
           <div class="content-card-header">
             <h6><i class="bi bi-phone me-2 text-primary"></i>By Device</h6>
@@ -74,6 +74,8 @@
             <div class="text-muted text-center py-3" style="font-size:0.875rem;">Loading...</div>
           </div>
         </div>
+      </div>
+      <div class="col-12 col-md-6">
         <div class="content-card">
           <div class="content-card-header">
             <h6><i class="bi bi-browser-chrome me-2 text-success"></i>By Browser</h6>
@@ -82,35 +84,6 @@
             <div class="text-muted text-center py-3" style="font-size:0.875rem;">Loading...</div>
           </div>
         </div>
-      </div>
-
-      <!-- Scan log table -->
-      <div class="col-12 col-lg-8">
-        <div class="content-card">
-          <div class="content-card-header">
-            <h6><i class="bi bi-list-ul me-2 text-secondary"></i>Scan Log</h6>
-            <span class="text-muted" style="font-size:0.8rem;">Total: <strong id="tableTotal">0</strong></span>
-          </div>
-          <div class="content-card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-hover mb-0">
-                <thead>
-                  <tr>
-                    <th>Customer</th>
-                    <th class="d-none d-md-table-cell">Device</th>
-                    <th class="d-none d-md-table-cell">Browser</th>
-                    <th class="d-none d-lg-table-cell">IP Address</th>
-                    <th>Time</th>
-                  </tr>
-                </thead>
-                <tbody id="scansTable">
-                  <tr><td colspan="5" class="text-center text-muted py-4">Loading...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div class="d-flex justify-content-center mt-3" id="paginationWrap"></div>
       </div>
     </div>
   `;
@@ -129,17 +102,9 @@
     document.getElementById('statWeek').textContent = stats.thisWeek;
     const mobile = stats.byDevice.find(d => d.device === 'Mobile');
     document.getElementById('statMobile').textContent = mobile ? mobile.count : 0;
-    document.getElementById('tableTotal').textContent = total;
 
-    // Device chart
     renderBarChart('deviceChart', stats.byDevice, 'device');
-
-    // Browser chart
     renderBarChart('browserChart', stats.byBrowser, 'browser');
-
-    // Scans table
-    renderTable(scans);
-    renderPagination(pages, page);
   }
 
   function renderBarChart(containerId, rows, key) {
@@ -159,52 +124,6 @@
       </div>
     `).join('');
   }
-
-  function renderTable(scans) {
-    const tbody = document.getElementById('scansTable');
-    if (!scans || scans.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-5">
-        <i class="bi bi-qr-code display-6 d-block mb-2"></i>No scans yet</td></tr>`;
-      return;
-    }
-    tbody.innerHTML = scans.map(s => `
-      <tr>
-        <td>
-          <a href="/card/${s.slug}" target="_blank"
-            class="fw-semibold text-decoration-none" style="font-size:0.875rem;color:#667eea;">
-            ${s.full_name}
-          </a>
-        </td>
-        <td class="d-none d-md-table-cell">
-          <span class="badge bg-light text-dark" style="font-size:0.75rem;">
-            <i class="bi bi-${s.device === 'Mobile' ? 'phone' : s.device === 'Tablet' ? 'tablet' : 'monitor'} me-1"></i>
-            ${s.device || '—'}
-          </span>
-        </td>
-        <td class="d-none d-md-table-cell text-muted" style="font-size:0.8rem;">${s.browser || '—'}</td>
-        <td class="d-none d-lg-table-cell text-muted" style="font-size:0.8rem;">${s.ip_address || '—'}</td>
-        <td class="text-muted" style="font-size:0.8rem;">${Format.datetime(s.scanned_at)}</td>
-      </tr>
-    `).join('');
-  }
-
-  function renderPagination(pages, page) {
-    const wrap = document.getElementById('paginationWrap');
-    if (pages <= 1) { wrap.innerHTML = ''; return; }
-    let html = `<nav><ul class="pagination pagination-sm mb-0">`;
-    html += `<li class="page-item ${page === 1 ? 'disabled' : ''}">
-      <a class="page-link" href="#" onclick="goPage(${page - 1})">‹</a></li>`;
-    for (let i = 1; i <= pages; i++) {
-      html += `<li class="page-item ${i === page ? 'active' : ''}">
-        <a class="page-link" href="#" onclick="goPage(${i})">${i}</a></li>`;
-    }
-    html += `<li class="page-item ${page === pages ? 'disabled' : ''}">
-      <a class="page-link" href="#" onclick="goPage(${page + 1})">›</a></li>`;
-    html += `</ul></nav>`;
-    wrap.innerHTML = html;
-  }
-
-  function goPage(p) { currentPage = p; loadAnalytics(); return false; }
 
   loadAnalytics();
   </script>
